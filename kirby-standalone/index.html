@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kirby Star Rod Showcase</title>
+    <link rel="icon" href="data:,">
+    <style>
+        html,
+        body {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            overflow: hidden;
+            background: #171622;
+            color: #fff1f5;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            min-width: 0;
+            min-height: 0;
+            grid-column: 2;
+            touch-action: none;
+            user-select: none;
+            cursor: grab;
+        }
+
+        canvas:active {
+            cursor: grabbing;
+        }
+
+        #status-overlay {
+            position: relative;
+            grid-column: 1;
+            grid-row: 1;
+            box-sizing: border-box;
+            width: 100%;
+            padding: 0.6rem 0.8rem;
+            border: 1px solid rgba(255, 178, 202, 0.32);
+            border-radius: 0.75rem;
+            background: rgba(29, 22, 39, 0.82);
+            z-index: 2;
+            max-height: 100vh;
+            overflow-y: auto;
+            pointer-events: auto;
+        }
+
+        body {
+            display: grid;
+            grid-template-columns: min(21rem, 32vw) minmax(0, 1fr);
+            grid-template-rows: minmax(0, 1fr);
+        }
+        body:has(#status-overlay[hidden]) { grid-template-columns: minmax(0, 1fr); }
+        body:has(#status-overlay[hidden]) canvas { grid-column: 1; }
+        [hidden] { display: none !important; }
+
+        h1 {
+            margin: 0 0 0.25rem;
+            font-size: 0.95rem;
+        }
+        h2 { margin: .55rem 0 .2rem; font-size: .8rem; color: #ffc3d3; }
+
+        p {
+            margin: 0.15rem 0;
+            font-size: 0.75rem;
+            line-height: 1.3;
+        }
+
+        .label {
+            color: #ffc3d3;
+            font-weight: 600;
+        }
+
+        #reset-view,
+        #toggle-animation,
+        #restart-animation,
+        #hide-info,
+        #show-info {
+            margin-top: 0.4rem;
+            padding: 0.3rem 0.6rem;
+            border: 1px solid rgba(255, 178, 202, 0.5);
+            border-radius: 0.4rem;
+            background: #382537;
+            color: #fff1f5;
+            font: inherit;
+            cursor: pointer;
+            pointer-events: auto;
+        }
+
+        #inspection-mode {
+            display: block;
+            max-width: 100%;
+            margin: 0.35rem 0;
+            padding: 0.35rem;
+            background: #382537;
+            color: #fff1f5;
+            border: 1px solid rgba(255, 178, 202, 0.5);
+            border-radius: 0.4rem;
+            font: inherit;
+        }
+
+        canvas:focus-visible, button:focus-visible, select:focus-visible {
+            outline: 2px solid #ffcf6e;
+            outline-offset: 2px;
+        }
+
+        #reset-view:disabled,
+        #toggle-animation:disabled,
+        #restart-animation:disabled,
+        #hide-info:disabled,
+        #show-info:disabled {
+            cursor: not-allowed;
+            opacity: 0.58;
+        }
+
+        #show-info {
+            position: fixed;
+            top: 0.65rem;
+            left: 0.65rem;
+            z-index: 3;
+            margin-top: 0;
+            background: rgba(56, 37, 55, 0.94);
+        }
+
+        #show-info.has-error {
+            border-color: #ffcf6e;
+            color: #fff4c9;
+        }
+
+        .visually-hidden {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+
+        @media (max-width: 44rem) {
+            body { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) auto; }
+            canvas { grid-column: 1; grid-row: 1; }
+            #status-overlay {
+                grid-column: 1;
+                grid-row: 2;
+                max-height: 42vh;
+                border-radius: .75rem .75rem 0 0;
+            }
+            body:has(#status-overlay[hidden]) { grid-template-rows: minmax(0, 1fr); }
+            button { min-height: 2.5rem; }
+
+            #show-info {
+                top: 0.4rem;
+                left: 0.4rem;
+                min-height: 2.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="webgl-canvas" tabindex="0" aria-describedby="view-instructions" aria-label="Drag to rotate Kirby with pink body and arms, red feet, facial details, and a complete Star Rod with a striped cream handle and golden five-pointed head.">
+        Your browser does not support the canvas element required for this WebGL preview.
+    </canvas>
+
+    <aside id="status-overlay">
+        <h1>Kirby Star Rod Showcase</h1>
+        <p><span class="label">WebGL:</span> <span id="webgl-version">initializing</span></p>
+        <p><span class="label">Status:</span> <span id="project-status" role="status" aria-live="polite" aria-atomic="true">Starting showcase...</span></p>
+        <p><span class="label">Now:</span> <span id="phase-explanation">Ready idle with independent blinking and smile expressions.</span></p>
+        <p><span class="label">Parts:</span> ellipsoids, paraboloid arms, recessed smile, capped cylindrical handle, solid spiral ribbon and curved star head.</p>
+        <label for="inspection-mode">Inspection mode</label>
+        <select id="inspection-mode" aria-describedby="mode-instructions">
+            <option value="animated">Animated Preview</option>
+            <option value="walk">Walk in Place</option>
+            <option value="neutral">Neutral Inspection</option>
+            <option value="holding">Holding-Pose Inspection</option>
+        </select>
+        <p id="mode-instructions">Automatic 20.24-second loop: idle → five walk cycles → settle → turn → rod gesture → hop → rest. Blink and smile cycles are independent. Walk in Place runs continuously. Static inspection stops clocks with open eyes/smile. Returning from Walk settles for 0.24 seconds before restarting the showcase.</p>
+        <p id="view-instructions"><span class="label">Controls:</span> drag to orbit; wheel to zoom. Focus canvas for arrow keys and +/−. R / Reset View changes only the view. Pause/Play and Restart control the selected moving mode.</p>
+        <button id="reset-view" type="button">Reset View</button>
+        <button id="toggle-animation" type="button" aria-pressed="true">Pause Animation</button>
+        <button id="restart-animation" type="button">Restart Animation</button>
+        <button id="hide-info" type="button" aria-controls="status-overlay" aria-expanded="true">Hide Info</button>
+        <h2>Rubric in motion</h2>
+        <p><span class="label">Walk:</span> local foot translation and rotation, with body weight shift.</p>
+        <p><span class="label">Body turn:</span> whole-character rotation about a ground-level local Y-axis pivot.</p>
+        <p><span class="label">Rod gesture:</span> local arbitrary-axis grip rotation; the arm carries the hand and attached rod.</p>
+        <p><span class="label">Hop:</span> vertical translation with nonuniform squash/stretch; the rod stays rigid.</p>
+        <p><span class="label">Hierarchy:</span> parent transforms carry attached child parts throughout the sequence, not only in one phase.</p>
+        <p><span class="label">Presentation:</span> removable stage and stylized contact shadow; no shared environment or other characters yet.</p>
+    </aside>
+
+    <button id="show-info" type="button" aria-controls="status-overlay" aria-expanded="false" hidden>Show Info</button>
+    <p id="runtime-alert" class="visually-hidden" role="alert" aria-live="assertive"></p>
+
+    <noscript>This raw WebGL application requires JavaScript.</noscript>
+    <script type="module" src="./main.js"></script>
+</body>
+</html>
+
