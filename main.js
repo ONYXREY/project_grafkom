@@ -1,15 +1,17 @@
 /**
- * main.js (Root Penggabungan Project Kelompok)
+ * main.js (Root Penggabungan Project Kelompok - 3 Karakter Lengkap)
  * Menggabungkan:
  * 1. Environment Latar Belakang Animasi dari ./environment/environment.js
- * 2. Karakter Kirby dari ./kirby-standalone/object.js
- * 3. Karakter King Dedede (Menapak Tanah / Tidak Mengambang) dari ./king_dedede_ObjectAnimation/dedede.js
- * ke dalam satu frame dan kamera interaktif yang sama.
+ * 2. Karakter 1: Kirby dari ./kirby-standalone/object.js (Kiri Panggung)
+ * 3. Karakter 2: King Dedede dari ./king_dedede_ObjectAnimation/dedede.js (Tengah Panggung)
+ * 4. Karakter 3: Meta Knight dari ./meta_knight/meta_knight.js (Kanan Panggung)
+ * ke dalam satu frame, satu environment, dan satu kamera interaktif.
  */
 
 import { buildEnvironment, updateEnvironmentAnimation } from './environment/environment.js';
 import { buildKingDedede, updateKingDededeAnimation } from './king_dedede_ObjectAnimation/dedede.js';
 import { createKirby, SceneNode as KirbySceneNode } from './kirby-standalone/object.js';
+import { initMetaKnight, drawMetaKnight } from './meta_knight/meta_knight.js';
 
 let gl;
 let dededeShaderInfo;
@@ -19,11 +21,13 @@ let envData;
 let dededeNodes;
 let kirbyInstance;
 let kirbyPlacementNode;
+let metaKnightData;
+let metaKnightPlacementMatrix;
 
 const appState = {
-    camYaw: 0.12,
+    camYaw: 0.0,
     camPitch: 0.18,
-    camDist: 14.5,
+    camDist: 15.8,
     isDragging: false,
     lastMouseX: 0,
     lastMouseY: 0,
@@ -214,7 +218,7 @@ function setupControls(canvas) {
 
     canvas.addEventListener("wheel", e => {
         e.preventDefault();
-        appState.camDist = Math.max(5.0, Math.min(28.0, appState.camDist + e.deltaY * 0.008));
+        appState.camDist = Math.max(5.0, Math.min(30.0, appState.camDist + e.deltaY * 0.008));
     }, { passive: false });
 }
 
@@ -228,21 +232,27 @@ function main() {
 
     initShaders(gl);
 
-    // 1. Bangun Environment Dream Land dari modul terpisah ./environment/environment.js
+    // 1. Bangun Environment Dream Land dari ./environment/environment.js
     envData = buildEnvironment(gl);
 
-    // 2. Bangun Karakter King Dedede & Tempatkan di Sisi Kanan Panggung (x = +2.2, Menapak di Y = -1.525)
-    dededeNodes = buildKingDedede(gl);
-    Libs.mat4.translate(dededeNodes.characterRoot.baseMatrix, dededeNodes.characterRoot.baseMatrix, [2.2, 0.0, 0.2]);
-    Libs.mat4.rotateY(dededeNodes.characterRoot.baseMatrix, dededeNodes.characterRoot.baseMatrix, Libs.degToRad(-16));
-
-    // 3. Bangun Karakter Kirby dari ./kirby-standalone/object.js & Tempatkan di Sisi Kiri Panggung (x = -2.4)
+    // 2. Bangun Karakter 1: Kirby (Ditempatkan di Sisi Kiri Panggung: x = -3.8, z = +0.6)
     kirbyInstance = createKirby(gl);
     kirbyPlacementNode = new KirbySceneNode("kirbyPlacementNode");
     kirbyPlacementNode.useLocalPose = true;
-    kirbyPlacementNode.transform.setPosition(-2.4, -0.45, 0.5);
-    kirbyPlacementNode.transform.setRotationFromEuler(0, 0.22, 0);
+    kirbyPlacementNode.transform.setPosition(-4, -0.45, 1);
+    kirbyPlacementNode.transform.setRotationFromEuler(0, 0.28,0 );
     kirbyPlacementNode.addChild(kirbyInstance.root);
+
+    // 3. Bangun Karakter 2: King Dedede (Ditempatkan di Tengah Panggung: x = 0.0, z = -0.5)
+    dededeNodes = buildKingDedede(gl);
+    Libs.mat4.translate(dededeNodes.characterRoot.baseMatrix, dededeNodes.characterRoot.baseMatrix, [0.0, 0.0, -0.5]);
+
+    // 4. Bangun Karakter 3: Meta Knight dari ./meta_knight/meta_knight.js (Ditempatkan di Sisi Kanan Panggung: x = +3.8, z = +0.6)
+    metaKnightData = initMetaKnight(gl);
+    metaKnightPlacementMatrix = LIBS.multiply(
+        LIBS.translate(4.5, -0.42, 0.8),
+        LIBS.rotateArbitrary(LIBS.degToRad(-18), 0, 1, 0)
+    );
 
     setupControls(canvas);
 
@@ -279,11 +289,11 @@ function main() {
         const eyeZ = appState.camDist * Math.cos(appState.camPitch) * Math.cos(appState.camYaw);
         const eyePos = [eyeX, eyeY, eyeZ];
 
-        Libs.mat4.lookAt(viewMatrix, eyePos, [0.0, 0.40, -0.4], [0.0, 1.0, 0.0]);
+        Libs.mat4.lookAt(viewMatrix, eyePos, [0.0, 0.40, -0.2], [0.0, 1.0, 0.0]);
         Libs.mat4.multiply(viewProjMatrix, projMatrix, viewMatrix);
 
         // ====================================================================
-        // TAHAP A: UPDATE & GAMBAR ENVIRONMENT + KING DEDEDE
+        // TAHAP A: UPDATE & GAMBAR ENVIRONMENT + KING DEDEDE (Tengah)
         // ====================================================================
         gl.useProgram(dededeShaderInfo.program);
         gl.enable(gl.DEPTH_TEST);
@@ -302,13 +312,13 @@ function main() {
         envData.envRoot.updateAndDraw(dededeShaderInfo, null);
         dededeNodes.characterRoot.updateAndDraw(dededeShaderInfo, null);
 
-        // ====================================================================
-        // TAHAP B: UPDATE & GAMBAR KIRBY
-        // ====================================================================
         if (dededeShaderInfo.attribs.aColor >= 0) {
             gl.disableVertexAttribArray(dededeShaderInfo.attribs.aColor);
         }
 
+        // ====================================================================
+        // TAHAP B: UPDATE & GAMBAR KIRBY (Kiri)
+        // ====================================================================
         gl.useProgram(kirbyShaderInfo.program);
         gl.uniformMatrix4fv(kirbyShaderInfo.uniforms.uViewProjectionMatrix, false, viewProjMatrix);
         gl.uniform3fv(kirbyShaderInfo.uniforms.uLightDirection, [0.45, 0.85, 0.60]);
@@ -317,6 +327,11 @@ function main() {
 
         kirbyInstance.update(dt);
         kirbyPlacementNode.updateAndDraw(kirbyShaderInfo, null);
+
+        // ====================================================================
+        // TAHAP C: UPDATE & GAMBAR META KNIGHT (Kanan)
+        // ====================================================================
+        drawMetaKnight(gl, metaKnightData, appState.accumulatedTime, viewProjMatrix, eyePos, metaKnightPlacementMatrix);
 
         requestAnimationFrame(render);
     }

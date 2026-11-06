@@ -1,8 +1,4 @@
-/**
- * libs.js
- * Library Matematika 3D, Matriks 4x4, Transformasi Sumbu Sembarang (Arbitrary Axis),
- * serta Evaluator Kurva 3D Cubic Bezier untuk Proyek Grafika Komputer WebGL - King Dedede.
- */
+
 
 const Libs = {
     // --- Utilitas Sudut & Vektor ---

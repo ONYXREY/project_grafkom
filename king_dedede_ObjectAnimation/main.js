@@ -1,7 +1,4 @@
-/**
- * king_dedede_ObjectAnimation/main.js
- * Program standalone untuk melihat King Dedede sendiri (sudah tidak mengambang & menggunakan environment.js)
- */
+
 
 import { buildKingDedede, updateKingDededeAnimation } from './dedede.js';
 import { buildEnvironment, updateEnvironmentAnimation } from '../environment/environment.js';

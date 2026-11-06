@@ -311,13 +311,6 @@ export function buildKingDedede(gl) {
         }
     });
 
-    const jetNozzleGeom = GeometryGenerator.createHyperboloidOneSheet(0.28, 0.28, 0.25, -0.8, 0.8, 14, 24, 0, 2 * Math.PI, 0.04);
-    const jetNozzleMesh = new Mesh(gl, jetNozzleGeom, COL_STEEL, 80.0, 0.9);
-    const nozzleMat = Libs.mat4.create();
-    Libs.mat4.translate(nozzleMat, nozzleMat, [0.0, 0.0, -1.18]);
-    Libs.mat4.rotateX(nozzleMat, nozzleMat, Math.PI / 2);
-    hammerHeadNode.addMesh(jetNozzleMesh, nozzleMat);
-
     // Kaki / Sepatu Kuning King Dedede
     const footMesh = new Mesh(gl, GeometryGenerator.createEllipsoid(0.54, 0.34, 0.82, 20, 28), COL_MITTEN, 32.0, 0.35);
 
@@ -352,9 +345,7 @@ export function buildKingDedede(gl) {
     };
 }
 
-/**
- * UPDATE ANIMASI KING DEDEDE (Berjalan Menapak di Panggung tanpa Mengambang, Gerakan Lain Tetap Sama)
- */
+
 export function updateKingDededeAnimation(dededeNodes, t) {
     Object.values(dededeNodes).forEach(node => {
         if (node && node.resetAnim) node.resetAnim();
