@@ -294,3 +294,5 @@ const Libs = {
         }
     }
 };
+
+window.Libs = Libs;
