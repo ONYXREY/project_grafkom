@@ -239,7 +239,9 @@ function main() {
     kirbyInstance = createKirby(gl);
     kirbyPlacementNode = new KirbySceneNode("kirbyPlacementNode");
     kirbyPlacementNode.useLocalPose = true;
-    kirbyPlacementNode.transform.setPosition(-4, -0.45, 1);
+    // Tinggi rumput: -1.70 + 0.35/2. Sesuaikan posisi Kirby agar telapak menapak.
+    const kirbyGroundY = -1.525;
+    kirbyPlacementNode.transform.setPosition(-4, kirbyGroundY - kirbyInstance.parts.turnRoot.transform.position.y, 1);
     kirbyPlacementNode.transform.setRotationFromEuler(0, 0.28,0 );
     kirbyPlacementNode.addChild(kirbyInstance.root);
 

@@ -678,9 +678,9 @@ const RUBRIC_EXPLANATIONS=Object.freeze({
     friendlyIdle:"Ready idle with independent blinking and smile expressions.",
     walk:"Five complete walk cycles: local foot translation/rotation and a gentle body weight shift.",
     settle:"Walking settles smoothly into the authored Star Rod holding pose.",
-    turn:"The complete character turns about a ground-level local Y pivot (24° authored peak), then returns.",
+    turn:"The complete character turns right, then left (28° each side), then front about a ground-level local Y pivot.",
     gesture:"The raised arm carries the hand and rod; the grip adds local arbitrary-axis rotation.",
-    hop:"Smooth vertical translation and nonuniform squash/stretch, with sole contact correction and a rigid attached rod.",
+    hop:"Two short hops: forward, then backward to the starting point. Readable squash/stretch holds, corrected sole contact and a rigid attached rod.",
     rest:"Resting holding pose; blinking and smile expressions continue. Hierarchy remains active in every phase."
 });
 

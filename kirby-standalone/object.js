@@ -1376,7 +1376,9 @@ const HOLD = Object.freeze({
     // rod-only flourish cannot sweep a long shaft section through the palm.
     gripX: 0.22,
     gripY: 0,
-    gripZ: 0.723,
+    // A 0.001-unit local clearance adjustment preserves shallow support
+    // through the more visible 12% hop stretch without changing the hand.
+    gripZ: 0.724,
     // Combined with the raised pivot, the shaft leans inward above Kirby.
     rodTilt: 0
 });
@@ -1860,18 +1862,20 @@ return createKirbyBlinkClip;
 })();
 const createKirbyStarRodIdleGestureClip = (() => {
 
-const DURATION = 2;
-const SAMPLE_TIMES = Object.freeze([0, 0.35, 0.75, 1.05, 1.35, 1.7, DURATION]);
+const DURATION = 3;
+const SAMPLE_TIMES = Object.freeze([0, 0.5, 1, 1.35, 1.65, 2.15, 2.65, DURATION]);
 const ARM_OFFSETS = Object.freeze([
     [0, 0, 0],
     [0.015, 0.05, 0],
     [0.045, 0.13, 0.005],
     [0.06, 0.18, 0.01],
+    [0.06, 0.18, 0.01],
     [0.045, 0.14, 0.008],
     [0.015, 0.05, 0],
     [0, 0, 0]
 ]);
-const ROD_SWEEP_DEGREES = Object.freeze([0, -4, 12, 28, 18, 5, 0]);
+// A readable diagonal salute: smooth outward sweep, brief peak, then return.
+const ROD_SWEEP_DEGREES = Object.freeze([0, 0, 18, 40, 40, 18, 0, 0]);
 
 /**
  * Creates Kirby's occasional grounded Star Rod holding-arm gesture.
@@ -1922,18 +1926,50 @@ return createKirbyStarRodIdleGestureClip;
 })();
 /** Hop-local event anchors and deformation; arm/rod key times stay independent of height evaluation. */
 export const KIRBY_HOP = Object.freeze({
-    duration:2.4,
-    times:Object.freeze([0,0.18,0.5,0.9,1.25,1.65,1.85,2.08,2.4]),
-    heights:Object.freeze([0,0,0.22,0.5,0.43,0.14,0,0.025,0]),
+    duration:3.4,
+    times:Object.freeze([0,0.25,0.55,0.85,1.2,1.6,2.05,2.25,2.55,2.9,3.4]),
+    heights:Object.freeze([0,0,0,0.28,0.55,0.42,0.10,0,0,0,0]),
     // Endpoint velocities per height interval (units/second). Monotone Hermite
-    // segments preserve every anchor without overshoot. First landing at 1.85s
-    // intentionally changes velocity from -0.70 to 0: a contact impulse, not C1.
-    // The small rebound has zero velocity at launch, peak and final recovery.
-    heightVelocities:Object.freeze([[0,0],[0,.70],[.70,0],[0,-.32],[-.32,-.71],[-.71,-.70],[0,0],[0,0]]
+    // segments preserve every anchor without overshoot. Landing at 2.25s
+    // intentionally changes velocity from -0.40 to 0: a contact impulse, not C1.
+    // Preparation and landing each include a 0.30-second readable squash hold.
+    heightVelocities:Object.freeze([[0,0],[0,0],[0,.9],[.9,0],[0,-.65],[-.65,-.65],[-.65,-.4],[0,0],[0,0],[0,0]]
         .map(pair=>Object.freeze(pair))),
-    verticalScales:Object.freeze([1,0.91,1.09,1.035,1.01,0.98,0.90,0.98,1]),
+    verticalScales:Object.freeze([1,0.85,0.85,1.12,1.06,1.02,0.98,0.85,0.85,0.96,1]),
     scaleIntervals:8
 });
+
+// Kirby maju pada arah +Z lokal, lalu kembali. Posisi tidak bergeser saat menapak.
+export const KIRBY_HOP_TRAVEL = Object.freeze({
+    distance:0.8, pauseDuration:0.45, liftOff:0.55, landing:2.25
+});
+
+export function evaluateKirbyHopTravel(time) {
+    if (!Number.isFinite(time) || time < 0) {
+        throw new RangeError("Invalid hop sequence time");
+    }
+
+    const settings = KIRBY_HOP_TRAVEL;
+    const returnStart = KIRBY_HOP.duration + settings.pauseDuration;
+    let localTime = time;
+    let returning = false;
+
+    // Setelah hop pertama selesai, tunggu jeda sebelum mulai hop mundur.
+    if (time > KIRBY_HOP.duration) {
+        returning = true;
+        localTime = Math.max(0, time - returnStart);
+    }
+
+    const flightDuration = settings.landing - settings.liftOff;
+    let progress = (localTime - settings.liftOff) / flightDuration;
+    progress = Math.max(0, Math.min(1, progress));
+    progress = smoothStep(progress);
+
+    if (returning) {
+        return settings.distance * (1 - progress);
+    }
+    return settings.distance * progress;
+}
 
 /** Evaluate the exact hop-specific piecewise cubic Hermite clearance.
  * Preparation/final recovery are grounded; only the intentional landing has a
@@ -1959,16 +1995,18 @@ const DURATION = KIRBY_HOP.duration;
 const SAMPLE_TIMES = KIRBY_HOP.times;
 const ARM_OFFSETS = Object.freeze([
     [0, 0, 0],
+    [0, 0, 0],
     [0.01, 0, 0],
     [0.04, 0.12, 0],
     [0.08, 0.25, 0.01],
     [0.1, 0.28, 0.02],
     [0.07, 0.18, 0.01],
     [0.03, 0.06, 0],
+    [0.03, 0.06, 0],
     [0.01, 0.018, 0],
     [0, 0, 0]
 ]);
-const ROD_FLOURISH_DEGREES = Object.freeze([0, -4, -14, 28, 50, 18, -9, 3, 0]);
+const ROD_FLOURISH_DEGREES = Object.freeze([0, 0, -4, -14, 28, 50, 18, -9, -9, 3, 0]);
 
 function createVectorKeyframes(values) {
     return SAMPLE_TIMES.map((time, index) => new Keyframe({
@@ -2057,20 +2095,40 @@ const TIME_EPSILON = 1e-9;
 
 /** Application-local ordinary Y rotation; seconds relative to each quiet interval. */
 export const KIRBY_TURN = Object.freeze({
-    duration: 3, angle: 24 * Math.PI / 180,
-    turnEnd: 1, holdEnd: 1.6, returnEnd: 2.7, intervals: 60
+    duration: 4.8, angle: 28 * Math.PI / 180,
+    turnEnd: 0.95, holdEnd: 1.35, oppositeEnd: 2.95,
+    oppositeHoldEnd: 3.35, returnEnd: 4.45, intervals: 96
 });
 
 /** Precompute eased quaternion samples once; the existing player owns sampling. */
 function createKirbyTurnClip() {
-    const keyframes=[],axis=new Vector3(0,1,0),settings=KIRBY_TURN;
-    for(let index=0;index<=settings.intervals;index++) {
-        const time=index*settings.duration/settings.intervals;
-        const amount=time<settings.turnEnd ? smoothStep(time/settings.turnEnd)
-            : time<=settings.holdEnd ? 1
-            : time<settings.returnEnd ? 1-smoothStep((time-settings.holdEnd)/(settings.returnEnd-settings.holdEnd)) : 0;
-        keyframes.push(new Keyframe({time,valueType:"quaternion",interpolation:"slerp",
-            value:new Quaternion().setFromAxisAngle(axis,settings.angle*amount)}));
+    const keyframes = [];
+    const axis = new Vector3(0, 1, 0);
+    const settings = KIRBY_TURN;
+
+    for (let index = 0; index <= settings.intervals; index++) {
+        const time = index * settings.duration / settings.intervals;
+        let amount = 0;
+
+        // Putar ke kanan, tahan, lalu ke kiri dan kembali ke arah awal.
+        if (time < settings.turnEnd) {
+            amount = smoothStep(time / settings.turnEnd);
+        } else if (time <= settings.holdEnd) {
+            amount = 1;
+        } else if (time < settings.oppositeEnd) {
+            amount = 1 - 2 * smoothStep((time - settings.holdEnd) / (settings.oppositeEnd - settings.holdEnd));
+        } else if (time <= settings.oppositeHoldEnd) {
+            amount = -1;
+        } else if (time < settings.returnEnd) {
+            amount = -1 + smoothStep((time - settings.oppositeHoldEnd) / (settings.returnEnd - settings.oppositeHoldEnd));
+        }
+
+        keyframes.push(new Keyframe({
+            time,
+            valueType: "quaternion",
+            interpolation: "slerp",
+            value: new Quaternion().setFromAxisAngle(axis, settings.angle * amount)
+        }));
     }
     return new AnimationClip({name:"Kirby deliberate body turn",duration:settings.duration,
         tracks:[{name:"body-turn",target:"turnRoot",property:"rotation",keyframes}]});
@@ -2140,10 +2198,19 @@ class KirbyAnimationController {
         const edge=Math.min(1,this.phaseTime/KIRBY_SHOWCASE.idleFade,
             (this.phase.duration-this.phaseTime)/KIRBY_SHOWCASE.idleFade);
         this.idle.seek(this.phaseTime).applyWeight(smoothStep(Math.max(0,edge)));
+        let travelZ = 0;
         if(name==="turn")this.turn.seek(this.phaseTime);
         else if(name==="gesture")this.gesture.seek(this.phaseTime);
-        else if(name==="hop")this.action.seek(this.phaseTime);
-        this.hopPose.apply(name==="hop",true);
+        else if(name==="hop") {
+            const returnStart = KIRBY_HOP.duration + KIRBY_HOP_TRAVEL.pauseDuration;
+            let hopTime = this.phaseTime;
+            if (this.phaseTime > KIRBY_HOP.duration) {
+                hopTime = Math.max(0, this.phaseTime - returnStart);
+            }
+            this.action.seek(hopTime);
+            travelZ = evaluateKirbyHopTravel(this.phaseTime);
+        }
+        this.hopPose.apply(name === "hop", true, travelZ);
     }
     update(deltaSeconds) {
         this.requireActive();if(this.paused||deltaSeconds===0)return this;
@@ -2378,9 +2445,9 @@ export const KIRBY_SHOWCASE = (()=>{
         ["friendlyIdle","Friendly idle",2.8],
         ["walk","Walk in place",KIRBY_WALK.duration*5],
         ["settle","Settling to holding pose",KIRBY_WALK.blendDuration],
-        ["turn","Body turn and return",KIRBY_TURN.duration],
-        ["gesture","Grounded Star Rod gesture",2],
-        ["hop","Star Rod hop",KIRBY_HOP.duration],
+        ["turn","Turn right, left, then front",KIRBY_TURN.duration],
+        ["gesture","Diagonal Star Rod salute",3],
+        ["hop","Hop forward and back",KIRBY_HOP.duration*2+KIRBY_HOP_TRAVEL.pauseDuration],
         ["rest","Resting idle",2.8]
     ].map(([name,label,duration])=>{const phase=Object.freeze({name,label,start,duration,end:start+duration});start=phase.end;return phase;});
     return Object.freeze({phases:Object.freeze(phases),duration:start,walkCycles:5,idleFade:0.24});
@@ -2523,6 +2590,7 @@ class KirbyHopPose {
         this.parts=parts;this.action=action;this.groundHeight=groundHeight;
         this.feet=[parts.leftFoot,parts.rightFoot].map(node=>({node,authoredY:node.transform.position.y}));
         this.actionY=parts.actionRoot.transform.position.y;
+        this.actionZ=parts.actionRoot.transform.position.z;
         this.rotation=new Quaternion();this.rotationPose=new LocalPose();
         parts.rodScaleCompensation.useLocalPose=false;
     }
@@ -2531,13 +2599,18 @@ class KirbyHopPose {
         for(let i=0;i<v.length;i+=3)bottom=Math.min(bottom,m[1]*v[i]+m[5]*v[i+1]+m[9]*v[i+2]+m[13]);
         return bottom;
     }
-    apply(actionActive, groundedPreview) {
+    apply(actionActive, groundedPreview, travelZ=0) {
         const p=this.parts;let height=0;
         if(actionActive) {
             // Resample the uncorrected authored + offset pose, even when paused.
             // Compensation therefore cannot feed back into the next pose.
             this.action.apply();height=evaluateKirbyHopHeight(this.action.time);
             p.actionRoot.transform.position.y=this.actionY+height+this.groundHeight*(1-p.actionRoot.transform.scale.y);
+        }
+        // Terapkan perpindahan setelah posisi dasar dari clip dipulihkan.
+        // Saat transisi ke jalan, posisi Z masih diatur oleh animasi berjalan.
+        if (actionActive || groundedPreview) {
+            p.actionRoot.transform.position.z = this.actionZ + travelZ;
         }
         if(groundedPreview) {
             for(const foot of this.feet)foot.node.transform.position.y=foot.authoredY;
