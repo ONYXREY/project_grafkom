@@ -5,7 +5,7 @@ import { GeometryGenerator, Mesh, SceneNode } from '../king_dedede_ObjectAnimati
 export function buildEnvironment(gl) {
     const envRoot = new SceneNode("EnvironmentRoot");
 
-    // 1. Panggung Arena Utama (Permukaan atas rumput berada tepat di Y = -1.525)
+    // Panggung Arena Utama (Permukaan atas rumput berada tepat di Y = -1.525)
     const grassPlatform = new Mesh(
         gl,
         GeometryGenerator.createCylinder(8.5, 8.5, 0.35, 6, 72, true),
@@ -14,20 +14,24 @@ export function buildEnvironment(gl) {
         0.15
     );
     const grassMat = Libs.mat4.create();
+    //lapisan rumput berada tepat di Y = -1.70
     Libs.mat4.translate(grassMat, grassMat, [0.0, -1.70, 0.0]);
     envRoot.addMesh(grassPlatform, grassMat);
 
     const stoneBase = new Mesh(
         gl,
+        // batu / lapisan paling dasar 
         GeometryGenerator.createCylinder(8.9, 7.9, 0.95, 8, 72, true),
         [0.88, 0.85, 0.78],
         20.0,
         0.20
     );
+    // lapisan batu berada tepat di sumbu Y (tepatnya di y= -2.30)
     const stoneMat = Libs.mat4.create();
     Libs.mat4.translate(stoneMat, stoneMat, [0.0, -2.30, 0.0]);
     envRoot.addMesh(stoneBase, stoneMat);
 
+    // ring emas
     const goldRing = new Mesh(
         gl,
         GeometryGenerator.createCylinder(8.68, 8.68, 0.15, 4, 72, true),
@@ -35,46 +39,13 @@ export function buildEnvironment(gl) {
         64.0,
         0.80
     );
+    // ring emas berada di sumbu Y 
     const ringMat = Libs.mat4.create();
     Libs.mat4.translate(ringMat, ringMat, [0.0, -1.68, 0.0]);
     envRoot.addMesh(goldRing, ringMat);
-
-    // 2. Fountain of Dreams di Tengah Belakang Panggung (Object 3 Hyperboloid + 3D Curve Air Mancur)
-    const fountainNode = new SceneNode("FountainOfDreamsNode");
-    Libs.mat4.translate(fountainNode.baseMatrix, fountainNode.baseMatrix, [0.0, -1.50, -5.0]);
-    envRoot.addChild(fountainNode);
-
-    const poolBaseMesh = new Mesh(
-        gl,
-        GeometryGenerator.createCylinder(2.1, 2.3, 0.42, 8, 48, true),
-        [0.92, 0.92, 0.96],
-        40.0,
-        0.45
-    );
     
 
-    // Bintang Agung di Puncak Fountain of Dreams (Berputar dengan Rotate Arbitrary Axis)
-    const fountainStarNode = new SceneNode("FountainStarNode");
-    Libs.mat4.translate(fountainStarNode.baseMatrix, fountainStarNode.baseMatrix, [0.0, 2.65, 0.0]);
-    fountainNode.addChild(fountainStarNode);
-
-    const bigStarCore = new Mesh(
-        gl,
-        GeometryGenerator.createEllipsoid(0.30, 0.30, 0.16, 16, 24),
-        [1.0, 0.88, 0.15],
-        85.0,
-        0.95
-    );
-    const bigStarPoint = new Mesh(
-        gl,
-        GeometryGenerator.createCone(0.20, 0.13, 0.48, 12, 18),
-        [1.0, 0.88, 0.15],
-        85.0,
-        0.95
-    );
-    
-
-    // 3. Pilar-Pilar Istana Dream Land di Sekeliling Belakang Panggung
+    //  Pilar-Pilar Istana 
     const pillarMesh = new Mesh(
         gl,
         GeometryGenerator.createHyperboloidOneSheet(0.35, 0.35, 1.0, -1.2, 1.2, 16, 28, 0, 2 * Math.PI, 0),
@@ -107,7 +78,7 @@ export function buildEnvironment(gl) {
         envRoot.addMesh(domeCapMesh, cMat);
     });
 
-    // 4. Pohon Rindang Green Greens di Sisi Kiri & Kanan Belakang
+    // Pohon 
     const trunkMesh = new Mesh(
         gl,
         GeometryGenerator.createCylinder(0.26, 0.40, 2.1, 10, 24, true),
@@ -139,7 +110,7 @@ export function buildEnvironment(gl) {
         envRoot.addMesh(foliageMesh, fMat2);
     });
 
-    // 5. Awan Putih Melayang di Langit Latar Belakang
+    //  Awan Putih 
     const cloudNodes = [];
     const cloudPuffMesh = new Mesh(
         gl,
@@ -172,7 +143,7 @@ export function buildEnvironment(gl) {
         cloudNodes.push({ node: cNode, speed: cfg.speed, phase: idx * 2.0 });
     });
 
-    // 6. Bintang-Bintang Warp Star 3D yang Mengorbit Panggung
+    // Bintang-Bintang 
     const starNodes = [];
     const starCoreMesh = new Mesh(
         gl,
@@ -211,7 +182,6 @@ export function buildEnvironment(gl) {
 
     return {
         envRoot,
-        fountainStarNode,
         cloudNodes,
         starNodes
     };
@@ -220,7 +190,7 @@ export function buildEnvironment(gl) {
 export function updateEnvironmentAnimation(envData, t) {
    
 
-    // 2. Animasi Awan Melayang
+    // Animasi Awan 
     if (envData.cloudNodes) {
         envData.cloudNodes.forEach(c => {
             c.node.resetAnim();
@@ -230,7 +200,7 @@ export function updateEnvironmentAnimation(envData, t) {
         });
     }
 
-    // 3. Animasi Bintang Warp Star Mengorbit Panggung
+    //  Animasi Bintang 
     if (envData.starNodes) {
         envData.starNodes.forEach((star, idx) => {
             star.node.resetAnim();

@@ -36,7 +36,7 @@ const appState = {
 };
 
 // ============================================================================
-// 1. SHADER UNTUK ENVIRONMENT & KING DEDEDE (Menggunakan atribut aColor vec3)
+//  SHADER ENVIRONMENT & KING DEDEDE 
 // ============================================================================
 const dededeVsSource = `
     attribute vec3 aPosition;
@@ -104,7 +104,7 @@ const dededeFsSource = `
 `;
 
 // ============================================================================
-// 2. SHADER UNTUK KIRBY STANDALONE (Menggunakan uniform uBaseColor vec4)
+//  SHADER  KIRBY STANDALONE 
 // ============================================================================
 const kirbyVsSource = `
     attribute vec3 aPosition;
@@ -232,24 +232,25 @@ function main() {
 
     initShaders(gl);
 
-    // 1. Bangun Environment Dream Land dari ./environment/environment.js
+    //  Environment Dream Land
     envData = buildEnvironment(gl);
 
-    // 2. Bangun Karakter 1: Kirby (Ditempatkan di Sisi Kiri Panggung: x = -3.8, z = +0.6)
+    //  Kirby (Ditempatkan di Sisi Kiri Panggung: x = -3.8, z = +0.6)
     kirbyInstance = createKirby(gl);
     kirbyPlacementNode = new KirbySceneNode("kirbyPlacementNode");
     kirbyPlacementNode.useLocalPose = true;
-    // Tinggi rumput: -1.70 + 0.35/2. Sesuaikan posisi Kirby agar telapak menapak.
+
+    // Tinggi rumput: -1.70 + 0.35/2.
     const kirbyGroundY = -1.525;
     kirbyPlacementNode.transform.setPosition(-4, kirbyGroundY - kirbyInstance.parts.turnRoot.transform.position.y, 1);
     kirbyPlacementNode.transform.setRotationFromEuler(0, 0.28,0 );
     kirbyPlacementNode.addChild(kirbyInstance.root);
 
-    // 3. Bangun Karakter 2: King Dedede (Ditempatkan di Tengah Panggung: x = 0.0, z = -0.5)
+    //  King Dedede (Ditempatkan di Tengah Panggung: x = 0.0, z = -0.5)
     dededeNodes = buildKingDedede(gl);
     Libs.mat4.translate(dededeNodes.characterRoot.baseMatrix, dededeNodes.characterRoot.baseMatrix, [0.0, 0.0, -0.5]);
 
-    // 4. Bangun Karakter 3: Meta Knight dari ./meta_knight/meta_knight.js (Ditempatkan di Sisi Kanan Panggung: x = +3.8, z = +0.6)
+    //  Bangun Meta Knight (Ditempatkan di Sisi Kanan Panggung: x = +3.8, z = +0.6)
     metaKnightData = initMetaKnight(gl);
     metaKnightPlacementMatrix = LIBS.multiply(
         LIBS.translate(4.5, -0.42, 0.8),
@@ -282,7 +283,7 @@ function main() {
         appState.lastFrameTime = nowSec;
         appState.accumulatedTime += dt;
 
-        // Warna Langit Dream Land
+        // Warna Langit envi
         gl.clearColor(0.50, 0.77, 0.98, 1.0);
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
@@ -295,7 +296,7 @@ function main() {
         Libs.mat4.multiply(viewProjMatrix, projMatrix, viewMatrix);
 
         // ====================================================================
-        // TAHAP A: UPDATE & GAMBAR ENVIRONMENT + KING DEDEDE (Tengah)
+        // King dedede dan envi
         // ====================================================================
         gl.useProgram(dededeShaderInfo.program);
         gl.enable(gl.DEPTH_TEST);
@@ -319,7 +320,7 @@ function main() {
         }
 
         // ====================================================================
-        // TAHAP B: UPDATE & GAMBAR KIRBY (Kiri)
+        // Kirby
         // ====================================================================
         gl.useProgram(kirbyShaderInfo.program);
         gl.uniformMatrix4fv(kirbyShaderInfo.uniforms.uViewProjectionMatrix, false, viewProjMatrix);
@@ -331,7 +332,7 @@ function main() {
         kirbyPlacementNode.updateAndDraw(kirbyShaderInfo, null);
 
         // ====================================================================
-        // TAHAP C: UPDATE & GAMBAR META KNIGHT (Kanan)
+        // Meta Knight
         // ====================================================================
         drawMetaKnight(gl, metaKnightData, appState.accumulatedTime, viewProjMatrix, eyePos, metaKnightPlacementMatrix);
 

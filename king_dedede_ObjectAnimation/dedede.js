@@ -1,10 +1,3 @@
-/**
- * king_dedede_ObjectAnimation/dedede.js
- * Modul Karakter King Dedede:
- * - Mempertahankan seluruh geometri dan gerakan asli dari king_dedede_ObjectAnimation/main.js
- * - Menghilangkan efek mengambang/lompat (jumpY) sehingga kaki selalu menapak di lantai panggung (Y = -1.525)
- */
-
 import { GeometryGenerator, Mesh, SceneNode } from './object.js';
 
 export function buildKingDedede(gl) {
@@ -29,7 +22,7 @@ export function buildKingDedede(gl) {
     characterRoot.addChild(torsoNode);
 
     // =========================================================================
-    // STEP 1: KEPALA, WAJAH, PARUH, TOPI, & MAHKOTA (Head Assembly)
+    //  KEPALA, WAJAH, PARUH, TOPI, & MAHKOTA 
     // =========================================================================
     const headNode = new SceneNode("HeadNode");
     Libs.mat4.translate(headNode.baseMatrix, headNode.baseMatrix, [0.0, 1.55, 0.08]);
@@ -149,7 +142,7 @@ export function buildKingDedede(gl) {
     pomPomNode.addMesh(new Mesh(gl, GeometryGenerator.createEllipsoid(0.28, 0.26, 0.28, 20, 28), COL_FUR_WHITE, 12.0, 0.1));
 
     // =========================================================================
-    // STEP 2: BADAN, PERUT BUNCIT, SABUK ZIG-ZAG, JUBAH HIPERBOLOID, & KURVA BULU
+    // BADAN, PERUT BUNCIT, SABUK ZIG-ZAG, JUBAH HIPERBOLOID, & KURVA BULU
     // =========================================================================
     const torsoMesh = new Mesh(gl, GeometryGenerator.createEllipsoid(1.52, 1.72, 1.38, 30, 44), COL_BLUE, 24.0, 0.2);
     torsoNode.addMesh(torsoMesh);
@@ -168,21 +161,28 @@ export function buildKingDedede(gl) {
     Libs.mat4.translate(beltOffset, beltOffset, [0.0, -0.18, 0.08]);
     bellyNode.addMesh(beltMesh, beltOffset);
 
-    const robeStartTheta = Math.PI / 2 + 0.52;
-    const robeEndTheta = 2.0 * Math.PI + Math.PI / 2 - 0.52;
+    const robeStartTheta = Math.PI / 2 + 0.76;
+    const robeEndTheta = 2.0 * Math.PI + Math.PI / 2 - 0.76;
+    //jubah merah
     const robeGeom = GeometryGenerator.createHyperboloidOneSheet(
-        1.18, 1.12, 1.15, -1.38, 0.30, 26, 48, robeStartTheta, robeEndTheta, 0.07
+        1.18, 1.12, 1.15, -1.38, 0.30, 26, 48, robeStartTheta, robeEndTheta, -0.07
     );
     const robeMesh = new Mesh(gl, robeGeom, COL_ROBE_RED, 22.0, 0.22);
     const robeOffset = Libs.mat4.create();
-    Libs.mat4.translate(robeOffset, robeOffset, [0.0, 0.32, -0.04]);
+    Libs.mat4.translate(robeOffset, robeOffset, [0.0, 0.50, -0.30]);
     torsoNode.addMesh(robeMesh, robeOffset);
 
+    //jubah
     const furMeshes = [
+        // jubah putih atas
         GeometryGenerator.createBezierTube([-0.85, 1.02, 0.85], [-1.55, 1.22, -0.65], [1.55, 1.22, -0.65], [0.85, 1.02, 0.85], 0.24, 34, 16, 9),
-        GeometryGenerator.createBezierTube([-0.82, 1.00, 0.85], [-1.12, 0.35, 1.05], [-1.38, -0.45, 1.22], [-1.68, -1.25, 1.38], 0.20, 28, 16, 7),
+        // jubah putih kiri depan
+        GeometryGenerator.createBezierTube([-0.82, 1.00, 0.85], [-1.12, 0.35, 1.05], [-1.38, -0.45, 1.22], [-1.70, -1.25, 1.25], 0.20, 28, 16, 7),
+        // jubah putih kanan depan
         GeometryGenerator.createBezierTube([0.82, 1.00, 0.85], [1.12, 0.35, 1.05], [1.38, -0.45, 1.22], [1.68, -1.25, 1.38], 0.20, 28, 16, 7),
-        GeometryGenerator.createBezierTube([-1.68, -1.25, 1.38], [-2.45, -1.28, 0.15], [-1.65, -1.28, -1.95], [0.0, -1.28, -2.02], 0.22, 30, 16, 8),
+        // jubah putih kiri belakang
+        GeometryGenerator.createBezierTube([-1.68, -1.25, 1.07], [-2.45, -1.28, 0.15], [-1.65, -1.28, -1.95], [0.0, -1.28, -2.02], 0.22, 30, 16, 8),
+        // jubah putih kanan belakang
         GeometryGenerator.createBezierTube([0.0, -1.28, -2.02], [1.65, -1.28, -1.95], [2.45, -1.28, 0.15], [1.68, -1.25, 1.38], 0.22, 30, 16, 8)
     ];
 
@@ -204,7 +204,7 @@ export function buildKingDedede(gl) {
     });
 
     // =========================================================================
-    // STEP 3: LENGAN, TANGAN MITTENS, KAKI, & SENJATA JET HAMMER (Limbs & Weapon)
+    //  LENGAN, TANGAN MITTENS, KAKI, & SENJATA JET HAMMER 
     // =========================================================================
     const sleeveMesh = new Mesh(gl, GeometryGenerator.createEllipsoid(0.55, 0.78, 0.52, 20, 28), COL_ROBE_RED, 22.0, 0.22);
     const cuffFurMesh = new Mesh(gl, GeometryGenerator.createCylinder(0.46, 0.48, 0.26, 8, 28, true), COL_FUR_WHITE, 14.0, 0.12);

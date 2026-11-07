@@ -1,5 +1,3 @@
-
-
 import { buildKingDedede, updateKingDededeAnimation } from './dedede.js';
 import { buildEnvironment, updateEnvironmentAnimation } from '../environment/environment.js';
 

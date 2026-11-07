@@ -1,10 +1,6 @@
-/**
- * object.js
- * Modul Generator Geometri Prosedural 3D (Stacks & Sectors) dan Scene Graph (SceneNode)
- */
-
 export const GeometryGenerator = {
     /**
+     * Catatan=
      * OBJECT 1: Ellipsoid
      * Persamaan: (x/a)^2 + (y/b)^2 + (z/c)^2 = 1
      */
@@ -119,7 +115,7 @@ export const GeometryGenerator = {
     },
 
     /**
-     * OBJECT 2 (Variasi): Sabuk Perut Motif Zig-Zag Kuning-Merah Khas King Dedede
+     * OBJECT 2 : Sabuk Perut 
      */
     createZigZagBelt: function(rx, rz, height, stacks = 12, sectors = 48) {
         const vertices = [];

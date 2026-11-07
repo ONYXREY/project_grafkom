@@ -1,7 +1,5 @@
-
-
 const Libs = {
-    // --- Utilitas Sudut & Vektor ---
+    //  Utilitas Sudut & Vektor
     degToRad: function(deg) {
         return deg * Math.PI / 180.0;
     },
@@ -36,7 +34,7 @@ const Libs = {
         }
     },
 
-    // --- Operasi Matriks 4x4 (Column-Major sesuai standar WebGL) ---
+    // Operasi Matriks 4x4 (Column-Major) 
     mat4: {
         create: function() {
             const out = new Float32Array(16);
@@ -91,7 +89,7 @@ const Libs = {
             return out;
         },
 
-        // Syarat Transformasi: Translate
+        //  Translate
         translate: function(out, a, v) {
             const x = v[0], y = v[1], z = v[2];
             if (a === out) {
@@ -107,7 +105,7 @@ const Libs = {
             return out;
         },
 
-        // Syarat Transformasi: Scaling
+        // Scaling
         scale: function(out, a, v) {
             const x = v[0], y = v[1], z = v[2];
             out[0] = a[0] * x; out[1] = a[1] * x; out[2] = a[2] * x; out[3] = a[3] * x;
@@ -117,7 +115,7 @@ const Libs = {
             return out;
         },
 
-        // Syarat Transformasi: Rotate (Sumbu X, Y, Z)
+        //  Rotate (Sumbu X, Y, Z)
         rotateX: function(out, a, rad) {
             const s = Math.sin(rad), c = Math.cos(rad);
             const a10 = a[4], a11 = a[5], a12 = a[6], a13 = a[7];
@@ -175,11 +173,7 @@ const Libs = {
             return out;
         },
 
-        /**
-         * Syarat Transformasi: Rotate Arbitrary Axis (Formula Rotasi Rodrigues dalam Matriks 4x4)
-         * Memutar matriks terhadap garis/sumbu sembarang yang melewati titik pivot (atau origin)
-         * dengan vektor arah axis = [ux, uy, uz].
-         */
+        
         rotateArbitraryAxis: function(out, a, rad, axis, pivot = [0, 0, 0]) {
             let [x, y, z] = axis;
             let len = Math.hypot(x, y, z);
@@ -260,8 +254,9 @@ const Libs = {
         }
     },
 
-    // --- Evaluator Kurva 3D Cubic Bezier ---
+    //  Evaluator Kurva 3D Cubic Bezier 
     bezier3D: {
+        //Rumus :
         // B(t) = (1-t)^3 P0 + 3(1-t)^2 t P1 + 3(1-t) t^2 P2 + t^3 P3
         getPoint: function(t, p0, p1, p2, p3) {
             const u = 1 - t;
